@@ -4,7 +4,9 @@ const rp2xxx = microzig.hal;
 const time = rp2xxx.time;
 
 const ili9341 = @import("ili9341.zig");
+const gfx_mod = @import("gfx.zig");
 const Display = ili9341.ILI9341(.lcd240x320);
+const Gfx = gfx_mod.DisplayGFX(Display);
 
 pub const panic = microzig.panic;
 pub const std_options = microzig.std_options(.{});
@@ -64,18 +66,47 @@ pub fn main() !void {
         time.sleep_ms,
     );
     pins.bl.put(1);
-    var color: Display.Color = .red;
-    var row_buf: [240]Display.Color = undefined;
+    var gfx = Gfx.init(&display, 240, 320);
 
-    while (true) {
-        pins.led.toggle();
-        time.sleep_ms(250);
+    try gfx.fillScreen(Gfx.Colors.black);
+    time.sleep_ms(500);
 
-        try display.set_address_window(0, 0, 240, 320);
-        @memset(&row_buf, color);
-        for (0..320) |_| {
-            try display.push_colors(&row_buf);
+    try gfx.fillRect(10, 10, 220, 300, Gfx.Colors.navy);
+    try gfx.drawRect(5, 5, 230, 310, Gfx.Colors.white);
+
+    try gfx.drawCircle(60, 60, 40, Gfx.Colors.yellow);
+    try gfx.fillCircle(180, 60, 40, Gfx.Colors.blue);
+    try gfx.drawCircle(180, 60, 40, Gfx.Colors.cyan);
+
+    try gfx.drawTriangle(60, 160, 30, 220, 90, 220, Gfx.Colors.green);
+    try gfx.fillTriangle(180, 160, 150, 220, 210, 220, Gfx.Colors.purple);
+
+    try gfx.drawRoundRect(10, 230, 220, 30, 8, Gfx.Colors.orange);
+    try gfx.fillRoundRect(10, 270, 220, 30, 8, Gfx.Colors.magenta);
+
+    try gfx.drawFastHLine(10, 145, 220, Gfx.Colors.white);
+    try gfx.drawFastVLine(120, 10, 280, Gfx.Colors.white);
+
+    gfx.setTextColor(Gfx.Colors.yellow);
+    gfx.setTextSize(2);
+    gfx.setCursor(30, 100);
+    try gfx.print("Hello, Zig!");
+
+    gfx.setTextColorBg(Gfx.Colors.cyan, Gfx.Colors.navy);
+    gfx.setTextSize(1);
+    gfx.setCursor(20, 125);
+    try gfx.print("ILI9341 @ 62.5MHz");
+
+    {
+        var i: u8 = 0;
+        while (true) : (i +%= 1) {
+            pins.led.toggle();
+            gfx.setTextColor(Gfx.Colors.white);
+            gfx.setTextSize(3);
+            gfx.setCursor(40, 280);
+            try gfx.print("COUNT: ");
+            try gfx.print(&[_]u8{'0' + (i / 100) % 10, '0' + (i / 10) % 10, '0' + i % 10});
+            time.sleep_ms(500);
         }
-        color = .{ .value = color.value +% 0x001F };
     }
 }
