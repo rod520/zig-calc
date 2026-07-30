@@ -18,21 +18,24 @@ const pin_config = rp2xxx.pins.GlobalConfiguration{
         .name = "led",
         .direction = .out,
     },
-    .GPIO2 = .{
+    .GPIO18 = .{
         .name = "sck",
         .function = .SPI0_SCK,
     },
-    .GPIO3 = .{
+    .GPIO19 = .{
         .name = "mosi",
         .function = .SPI0_TX,
     },
+    // we dont need miso
     .GPIO4 = .{
         .name = "miso",
         .function = .SPI0_RX,
     },
-    .GPIO5 = .{ .name = "cs", .direction = .out },
-    .GPIO6 = .{ .name = "dc", .direction = .out },
-    .GPIO7 = .{ .name = "rst", .direction = .out },
+    
+    .GPIO17 = .{ .name = "cs", .direction = .out },
+    .GPIO16 = .{ .name = "dc", .direction = .out },
+    .GPIO20 = .{ .name = "rst", .direction = .out },
+    .GPIO22 = .{ .name = "bl", .direction = .out },
 };
 
 pub fn main() !void {
@@ -60,7 +63,7 @@ pub fn main() !void {
         dc_dev.digital_io(),
         time.sleep_ms,
     );
-
+    pins.bl.put(1);
     var color: Display.Color = .red;
     var row_buf: [240]Display.Color = undefined;
 
