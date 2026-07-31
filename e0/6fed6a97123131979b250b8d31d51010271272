@@ -1,0 +1,32 @@
+src/gfx.zig
+  s_df571c37d198be::t_c72de93b026fa6 124
+  s_df571c37d198be::t_d9eccaa7820470 125
+  s_df571c37d198be::t_933278b3c0b696 500-501
+  s_df571c37d198be::t_0bf8a223f32c48 27
+src/layout.zig
+  h_7ffaac8f5937a6 77
+src/main.zig
+  s_df571c37d198be::t_e561966ea056cd 108
+  s_df571c37d198be::t_60689f55c7672e 99-101,109-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "e06fed6a97123131979b250b8d31d51010271272",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_df571c37d198be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_047234619ffeW61QvbSXjpeMSP",
+        "model": "unknown"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
