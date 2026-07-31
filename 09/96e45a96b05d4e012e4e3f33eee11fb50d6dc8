@@ -1,0 +1,33 @@
+src/main.zig
+  s_df571c37d198be::t_7cca7ab22331bd 8,75-76,84,86-87,109,116-117,183,191,196,198,204
+  s_df571c37d198be::t_0b8700f45d037c 33-34,40-51,54-74,79-83,85,92-98,100-108,110-115,119-150,181-182,185,187-189,192-195,197,199-203,205-206
+  s_df571c37d198be::t_67b3c88a38d626 77-78,90-91
+  h_7ffaac8f5937a6 39
+  s_df571c37d198be::t_50448de78e960a 88-89,99
+  s_df571c37d198be::t_86fcb799cf2a45 118
+  s_df571c37d198be::t_396c0256dd9e0b 190
+src/keypad.zig
+  s_df571c37d198be::t_a61c9948df674a 1-37,39,41-53
+  s_df571c37d198be::t_ab8f1f7a3af48d 38,40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "0996e45a96b05d4e012e4e3f33eee11fb50d6dc8",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_df571c37d198be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_047234619ffeW61QvbSXjpeMSP",
+        "model": "unknown"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
