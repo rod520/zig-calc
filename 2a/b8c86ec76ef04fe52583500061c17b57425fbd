@@ -1,0 +1,14 @@
+src/ili9341.zig
+  h_7ffaac8f5937a6 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "2ab8c86ec76ef04fe52583500061c17b57425fbd",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
