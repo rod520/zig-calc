@@ -45,7 +45,7 @@ pub const MADCTL_MX = 0x40;
 pub const MADCTL_MV = 0x20;
 // using bgr 
 pub const MADCTL_BGR = 0x08;
-// truth be told i have no idea whats going on here
+// no i get whats going on here now: its the madctl instruction from the rotation
 fn madctl_from_rotation(rotation: Rotation, color_order: ColorOrder) u8 {
     const bgr_bit: u8 = if (color_order == .bgr) MADCTL_BGR else 0;
     return switch (rotation) {
