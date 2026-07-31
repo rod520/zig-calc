@@ -8,6 +8,7 @@ pub const KeyKind = union(enum) {
     unicode: []const u8, // inserts this string
     alpha,               // toggles alpha mode
     shift,               // toggles shift mode
+    // soon gonna make menu an array of unicodes, which gets selected over using the display
     menu: []const u8,    // opens a menu, label = payload ("calc_menu", ...)
     pos_neg,             // +/- sign toggle
     arrow: enum { left, down, up, right }, // cursor movement

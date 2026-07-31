@@ -1,29 +1,31 @@
 const std = @import("std");
 const microzig = @import("microzig");
+// as it turns out microzig does come with some "drivers". these help with spi communication 
 const mdf = microzig.drivers;
-
+// constructor function
 pub fn ILI9341(display_cfg: DisplayConfig) type {
     return ILI9341_Generic(display_cfg);
 }
-
+// set resolution
 pub const Resolution = struct {
     width: u16,
     height: u16,
 };
-
+// this is actually kinda unnecessary, we could just set bgr everywhere, but i'll leave this for now because I think this is evaled in comptime
 pub const ColorOrder = enum(u1) {
     rgb = 0,
     bgr = 1,
 };
-
+// rotation
 pub const Rotation = enum(u2) {
-    deg0,
-    deg90,
-    deg180,
-    deg270,
+    deg0, // my display's pins are down
+    deg90, //right i believe
+    deg180, // they would be up
+    deg270, // left
 };
 
 pub const DisplayConfig = struct {
+    // display config, 
     resolution: Resolution,
     x_offset: u16 = 0,
     y_offset: u16 = 0,
@@ -34,12 +36,16 @@ pub const DisplayConfig = struct {
         .resolution = .{ .width = 240, .height = 320 },
     };
 };
-
+// these are the instructions for different madctl modes
+// row bottom to top
 pub const MADCTL_MY = 0x80;
+// left to right columns
 pub const MADCTL_MX = 0x40;
+// row column exchange
 pub const MADCTL_MV = 0x20;
+// using bgr 
 pub const MADCTL_BGR = 0x08;
-
+// truth be told i have no idea whats going on here
 fn madctl_from_rotation(rotation: Rotation, color_order: ColorOrder) u8 {
     const bgr_bit: u8 = if (color_order == .bgr) MADCTL_BGR else 0;
     return switch (rotation) {
@@ -53,18 +59,20 @@ fn madctl_from_rotation(rotation: Rotation, color_order: ColorOrder) u8 {
 fn ILI9341_Generic(display_cfg: DisplayConfig) type {
     return struct {
         const Self = @This();
-
+        // mdf  gives us colors
         pub const Color = mdf.display.colors.RGB565_Generic(.big);
-
+        // our packet oriented commuication device
         dd: mdf.base.DatagramDevice,
+        // this is just the reset pin
         dev_rst: mdf.base.Digital_IO,
+        // switching between low and high for commands and data
         dev_datcmd: mdf.base.Digital_IO,
         madctl: u8,
-
+        // display constants
         resolution: Resolution = display_cfg.resolution,
         x_offset: u16 = display_cfg.x_offset,
         y_offset: u16 = display_cfg.y_offset,
-
+        // i think this has to do with making sure the new pixel is different?
         old_x1: u16 = 0xFFFF,
         old_x2: u16 = 0xFFFF,
         old_y1: u16 = 0xFFFF,
@@ -92,12 +100,14 @@ fn ILI9341_Generic(display_cfg: DisplayConfig) type {
 
         fn set_spi_mode(dri: *Self, mode: enum { data, command }) !void {
             try dri.dev_datcmd.write(switch (mode) {
+                // switch between modes here
                 .command => .low,
                 .data => .high,
             });
         }
 
         fn hard_reset(dri: *Self, delay_ms: *const fn (ms: u32) void) !void {
+            // lol are we just spamming the reset button here?
             try dri.dev_rst.write(.high);
             delay_ms(200);
             try dri.dev_rst.write(.low);
@@ -107,6 +117,7 @@ fn ILI9341_Generic(display_cfg: DisplayConfig) type {
         }
 
         fn range_to_bigendian_bytes(start: u16, end: u16) [4]u8 {
+            // to a new number format
             return .{
                 @as(u8, @truncate(start >> 8)),
                 @as(u8, @truncate(start)),
@@ -118,7 +129,7 @@ fn ILI9341_Generic(display_cfg: DisplayConfig) type {
         fn init_sequence(dri: *Self, delay_ms: *const fn (ms: u32) void) !void {
             try dri.write_command(.swreset, &.{});
             delay_ms(150);
-
+            // init sequence, I dont get what, I do get how
             try dri.write_raw(0xEF, &.{ 0x03, 0x80, 0x02 });
             try dri.write_raw(0xCF, &.{ 0x00, 0xC1, 0x30 });
             try dri.write_raw(0xED, &.{ 0x64, 0x03, 0x12, 0x81 });
