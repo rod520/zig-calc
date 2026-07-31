@@ -71,42 +71,34 @@ pub fn main() !void {
     try gfx.fillScreen(Gfx.Colors.black);
     time.sleep_ms(500);
 
-    try gfx.fillRect(10, 10, 220, 300, Gfx.Colors.navy);
-    try gfx.drawRect(5, 5, 230, 310, Gfx.Colors.white);
+    
+    
 
-    try gfx.drawCircle(60, 60, 40, Gfx.Colors.yellow);
-    try gfx.fillCircle(180, 60, 40, Gfx.Colors.blue);
-    try gfx.drawCircle(180, 60, 40, Gfx.Colors.cyan);
 
-    try gfx.drawTriangle(60, 160, 30, 220, 90, 220, Gfx.Colors.green);
-    try gfx.fillTriangle(180, 160, 150, 220, 210, 220, Gfx.Colors.purple);
-
-    try gfx.drawRoundRect(10, 230, 220, 30, 8, Gfx.Colors.orange);
-    try gfx.fillRoundRect(10, 270, 220, 30, 8, Gfx.Colors.magenta);
-
-    try gfx.drawFastHLine(10, 145, 220, Gfx.Colors.white);
-    try gfx.drawFastVLine(120, 10, 280, Gfx.Colors.white);
-
-    gfx.setTextColor(Gfx.Colors.yellow);
-    gfx.setTextSize(2);
-    gfx.setCursor(30, 100);
-    try gfx.print("Hello, Zig!");
+    try gfx.fillRect(0, 0, 40, 20, Gfx.Colors.red);
+    try gfx.fillRect(40, 0, 40, 20, Gfx.Colors.green);
+    try gfx.fillRect(80, 0, 40, 20, Gfx.Colors.blue);
+    try gfx.fillRect(120, 0, 40, 20, Gfx.Colors.cyan);
+    try gfx.fillRect(160, 0, 40, 20, Gfx.Colors.magenta);
+    try gfx.fillRect(200, 0, 40, 20, Gfx.Colors.yellow);
 
     gfx.setTextColorBg(Gfx.Colors.cyan, Gfx.Colors.navy);
     gfx.setTextSize(1);
     gfx.setCursor(20, 125);
     try gfx.print("ILI9341 @ 62.5MHz");
 
+
     {
         var i: u8 = 0;
         while (true) : (i +%= 1) {
             pins.led.toggle();
+            try gfx.fillRect(40, 280, 160, 8, Gfx.Colors.magenta);
             gfx.setTextColor(Gfx.Colors.white);
-            gfx.setTextSize(3);
+            gfx.setTextSize(1);
             gfx.setCursor(40, 280);
             try gfx.print("COUNT: ");
             try gfx.print(&[_]u8{'0' + (i / 100) % 10, '0' + (i / 10) % 10, '0' + i % 10});
-            time.sleep_ms(500);
+            time.sleep_ms(2000);
         }
     }
 }

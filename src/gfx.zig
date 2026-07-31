@@ -2,25 +2,25 @@ const std = @import("std");
 
 pub fn ColorTable(comptime C: type) type {
     return struct {
-        pub const black: C = .{ .value = 0x0000 };
-        pub const navy: C = .{ .value = 0x000F };
-        pub const darkgreen: C = .{ .value = 0x03E0 };
-        pub const darkcyan: C = .{ .value = 0x03EF };
-        pub const maroon: C = .{ .value = 0x7800 };
-        pub const purple: C = .{ .value = 0x780F };
-        pub const olive: C = .{ .value = 0x7BE0 };
-        pub const lightgrey: C = .{ .value = 0xC618 };
-        pub const darkgrey: C = .{ .value = 0x7BEF };
-        pub const blue: C = .{ .value = 0x001F };
-        pub const green: C = .{ .value = 0x07E0 };
-        pub const cyan: C = .{ .value = 0x07FF };
-        pub const red: C = .{ .value = 0xF800 };
-        pub const magenta: C = .{ .value = 0xF81F };
-        pub const yellow: C = .{ .value = 0xFFE0 };
-        pub const white: C = .{ .value = 0xFFFF };
-        pub const orange: C = .{ .value = 0xFD20 };
-        pub const greenyellow: C = .{ .value = 0xAFE5 };
-        pub const pink: C = .{ .value = 0xFC18 };
+        pub const black: C = C.from_rgb(0x00, 0x00, 0x00);
+        pub const navy: C = C.from_rgb(0x00, 0x00, 0x80);
+        pub const darkgreen: C = C.from_rgb(0x00, 0x80, 0x00);
+        pub const darkcyan: C = C.from_rgb(0x00, 0x80, 0x80);
+        pub const maroon: C = C.from_rgb(0x80, 0x00, 0x00);
+        pub const purple: C = C.from_rgb(0x80, 0x00, 0x80);
+        pub const olive: C = C.from_rgb(0x80, 0x80, 0x00);
+        pub const lightgrey: C = C.from_rgb(0xC0, 0xC0, 0xC0);
+        pub const darkgrey: C = C.from_rgb(0x80, 0x80, 0x80);
+        pub const blue: C = C.from_rgb(0x00, 0x00, 0xFF);
+        pub const green: C = C.from_rgb(0x00, 0xFF, 0x00);
+        pub const cyan: C = C.from_rgb(0x00, 0xFF, 0xFF);
+        pub const red: C = C.from_rgb(0xFF, 0x00, 0x00);
+        pub const magenta: C = C.from_rgb(0xFF, 0x00, 0xFF);
+        pub const yellow: C = C.from_rgb(0xFF, 0xFF, 0x00);
+        pub const white: C = C.from_rgb(0xFF, 0xFF, 0xFF);
+        pub const orange: C = C.from_rgb(0xFF, 0xA0, 0x00);
+        pub const greenyellow: C = C.from_rgb(0xAD, 0xFF, 0x2F);
+        pub const pink: C = C.from_rgb(0xFF, 0x80, 0x80);
     };
 }
 
@@ -421,7 +421,7 @@ pub fn DisplayGFX(comptime Display: type) type {
                                 size, size, fg,
                             );
                         }
-                    } else if (fg.value == bg.value) {
+                    } else if (fg.value != bg.value) {
                         if (size == 1) {
                             try gfx.drawPixel(x + @as(u16, @intCast(col)), y + @as(u16, @intCast(row)), bg);
                         } else {
