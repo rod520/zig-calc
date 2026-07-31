@@ -6,6 +6,7 @@ const time = rp2xxx.time;
 const ili9341 = @import("ili9341.zig");
 const gfx_mod = @import("gfx.zig");
 const keypad_mod = @import("keypad.zig");
+const layout_mod = @import("layout.zig");
 const Display = ili9341.ILI9341(.lcd240x320);
 const Gfx = gfx_mod.DisplayGFX(Display);
 
@@ -31,7 +32,6 @@ const pin_config = rp2xxx.pins.GlobalConfiguration{
     },
     // we dont need miso
 
-
     .GPIO17 = .{ .name = "cs", .direction = .out },
     .GPIO16 = .{ .name = "dc", .direction = .out },
     .GPIO20 = .{ .name = "rst", .direction = .out },
@@ -51,101 +51,193 @@ const pin_config = rp2xxx.pins.GlobalConfiguration{
     .GPIO0 = .{ .name = "col0", .direction = .out },
 };
 
-const grid_x: u16 = 14;
-const grid_y: u16 = 28;
-const cell: u16 = 32;
-const gap: u16 = 4;
+const input_cap = 38;
+const hist_cap = 16;
+const ring_cap = 38; // output rows that fit between y=8 and y=312
 
-fn fmtNum(n: u8, buf: *[3]u8) []const u8 {
-    var len: usize = 0;
-    if (n >= 100) {
-        buf[len] = '0' + n / 100;
-        len += 1;
-    }
-    if (n >= 10) {
-        buf[len] = '0' + (n / 10) % 10;
-        len += 1;
-    }
-    buf[len] = '0' + n % 10;
-    len += 1;
-    return buf[0..len];
-}
+const Repl = struct {
+    input: [input_cap]u8 = undefined,
+    input_len: usize = 0,
+    cursor: usize = 0,
+    alpha_on: bool = false,
+    shift_on: bool = false,
 
-fn drawGrid(gfx: *Gfx) !void {
-    for (0..keypad_mod.ROWS) |r| {
-        for (0..keypad_mod.COLS) |c| {
-            const x = grid_x + @as(u16, @intCast(c)) * (cell + gap);
-            const y = grid_y + @as(u16, @intCast(r)) * (cell + gap);
-            try gfx.drawRect(x, y, cell, cell, Gfx.Colors.blue);
-        }
-    }
-}
+    history: [hist_cap][input_cap]u8 = undefined,
+    hist_lens: [hist_cap]usize = undefined,
+    hist_count: usize = 0,
+    entry_lines: [hist_cap]usize = undefined,
 
-fn drawCells(gfx: *Gfx, pressed: keypad_mod.PressedState) !void {
-    gfx.setTextSize(1);
-    for (0..keypad_mod.ROWS) |r| {
-        for (0..keypad_mod.COLS) |c| {
-            const pc: u8 = @intCast(keypad_mod.COLS - 1 - c);
-            const down = ((pressed[pc] >> @intCast(r)) & 1) != 0;
-            const x = grid_x + @as(u16, @intCast(c)) * (cell + gap);
-            const y = grid_y + @as(u16, @intCast(r)) * (cell + gap);
-            if (down) {
-                try gfx.fillRect(x + 2, y + 2, cell - 4, cell - 4, Gfx.Colors.green);
-                gfx.setTextColorBg(Gfx.Colors.black, Gfx.Colors.green);
+    screen: [ring_cap][input_cap + 2]u8 = undefined,
+    screen_lens: [ring_cap]usize = undefined,
+    result_flags: [ring_cap]bool = undefined,
+    screen_total: usize = 0,
+
+    hl_k: usize = 0, // 1..hist_count = kth newest history line highlighted, 0 = none
+
+    fn init() Repl {
+        return .{
+            .hist_lens = std.mem.zeroes([hist_cap]usize),
+            .screen_lens = std.mem.zeroes([ring_cap]usize),
+            .result_flags = std.mem.zeroes([ring_cap]bool),
+        };
+    }
+
+    fn copyBytes(dst: []u8, src: []const u8) void {
+        for (src, 0..) |c, i| dst[i] = c;
+    }
+
+    fn insertByte(self: *Repl, ch: u8) void {
+        if (self.input_len >= input_cap) return;
+        var i = self.input_len;
+        while (i > self.cursor) : (i -= 1)
+            self.input[i] = self.input[i - 1];
+        self.input[self.cursor] = ch;
+        self.cursor += 1;
+        self.input_len += 1;
+    }
+
+    /// Insert a unicode string. The UTF-8 script-e (Euler) is stored as the
+    /// single sentinel byte 0xEE so it renders as its own glyph.
+    fn insert(self: *Repl, s: []const u8) void {
+        var i: usize = 0;
+        while (i < s.len and self.input_len < input_cap) {
+            if (s[i] == 0xE2 and i + 2 < s.len and s[i + 1] == 0x84 and s[i + 2] == 0xAF) {
+                self.insertByte(0xEE);
+                i += 3;
             } else {
-                try gfx.fillRect(x + 2, y + 2, cell - 4, cell - 4, Gfx.Colors.navy);
-                gfx.setTextColorBg(Gfx.Colors.white, Gfx.Colors.navy);
+                self.insertByte(s[i]);
+                i += 1;
             }
-            const n = keypad_mod.buttonNumber(@intCast(r), pc);
-            var buf: [3]u8 = undefined;
-            const s = fmtNum(n, &buf);
-            const tw: u16 = @intCast(s.len * 6);
-            gfx.setCursor(x + (cell - tw) / 2, y + (cell - 8) / 2);
-            try gfx.print(s);
+        }
+    }
+
+    fn backspace(self: *Repl) void {
+        if (self.cursor == 0) return;
+        var i = self.cursor - 1;
+        while (i + 1 < self.input_len) : (i += 1)
+            self.input[i] = self.input[i + 1];
+        self.cursor -= 1;
+        self.input_len -= 1;
+    }
+
+    fn clearInput(self: *Repl) void {
+        self.input_len = 0;
+        self.cursor = 0;
+    }
+
+    fn moveHighlight(self: *Repl, up: bool) void {
+        if (self.hist_count == 0) return;
+        if (up) {
+            if (self.hl_k < self.hist_count) self.hl_k += 1;
+        } else {
+            if (self.hl_k > 0) self.hl_k -= 1;
+        }
+    }
+
+    fn paste(self: *Repl) void {
+        if (self.hl_k == 0) return;
+        const slot = self.hist_count - self.hl_k;
+        const n = self.hist_lens[slot];
+        copyBytes(self.input[0..n], self.history[slot][0..n]);
+        self.input_len = n;
+        self.cursor = n;
+        self.hl_k = 0;
+    }
+
+    fn addHistory(self: *Repl) void {
+        var slot = self.hist_count;
+        if (self.hist_count == hist_cap) {
+            var i: usize = 0;
+            while (i + 1 < hist_cap) : (i += 1) {
+                self.history[i] = self.history[i + 1];
+                self.hist_lens[i] = self.hist_lens[i + 1];
+                self.entry_lines[i] = self.entry_lines[i + 1];
+            }
+            slot = hist_cap - 1;
+        } else {
+            self.hist_count += 1;
+        }
+        self.hist_lens[slot] = self.input_len;
+        copyBytes(self.history[slot][0..self.input_len], self.input[0..self.input_len]);
+        self.entry_lines[slot] = self.screen_total;
+    }
+
+    fn pushLine(self: *Repl, prefix: u8, s: []const u8, is_result: bool) void {
+        const idx = self.screen_total % ring_cap;
+        var n: usize = 0;
+        if (prefix != 0) {
+            self.screen[idx][0] = prefix;
+            self.screen[idx][1] = ' ';
+            n = 2;
+        }
+        copyBytes(self.screen[idx][n .. n + s.len], s);
+        self.screen_lens[idx] = n + s.len;
+        self.result_flags[idx] = is_result;
+        self.screen_total += 1;
+    }
+
+    fn eval(self: *Repl) void {
+        if (self.input_len == 0) return;
+        self.addHistory();
+        self.pushLine('>', self.input[0..self.input_len], false);
+        self.pushLine(0, self.input[0..self.input_len], true);
+        self.clearInput();
+        self.hl_k = 0;
+    }
+};
+
+fn choose(alt: layout_mod.KeyKind, orig: layout_mod.KeyKind) layout_mod.KeyKind {
+    return switch (alt) {
+        .none => orig,
+        else => alt,
+    };
+}
+
+fn redrawBar(gfx: *Gfx, repl: *const Repl) !void {
+    var s: [input_cap + 2]u8 = undefined;
+    @memset(s[0..], ' ');
+    const title = "REPL";
+    for (title, 0..) |c, i| s[i] = c;
+    const mode = if (repl.shift_on) "SHIFT" else if (repl.alpha_on) "ALPHA" else "";
+    if (mode.len > 0) {
+        const start = (input_cap + 2) - mode.len;
+        for (mode, 0..) |c, i| s[start + i] = c;
+    }
+    try gfx.drawTextLine(0, s[0..], Gfx.Colors.cyan, Gfx.Colors.black);
+}
+
+fn redrawOutput(gfx: *Gfx, repl: *const Repl) !void {
+    const visible = @min(repl.screen_total, ring_cap);
+    const first = repl.screen_total - visible;
+    var i: usize = 0;
+    while (i < visible) : (i += 1) {
+        const g = first + i;
+        const idx = g % ring_cap;
+        const s = repl.screen[idx][0..repl.screen_lens[idx]];
+        var hl = false;
+        if (repl.hl_k > 0) {
+            const slot = repl.hist_count - repl.hl_k;
+            if (repl.entry_lines[slot] == g) hl = true;
+        }
+        const y: u16 = @intCast(8 + i * 8);
+        if (hl) {
+            try gfx.drawTextLine(y, s, Gfx.Colors.black, Gfx.Colors.yellow);
+        } else if (repl.result_flags[idx]) {
+            try gfx.drawTextLine(y, s, Gfx.Colors.darkgrey, Gfx.Colors.black);
+        } else {
+            try gfx.drawTextLine(y, s, Gfx.Colors.white, Gfx.Colors.black);
         }
     }
 }
 
-fn drawReadout(gfx: *Gfx, pressed: keypad_mod.PressedState) !void {
-    try gfx.fillRect(0, 246, 240, 74, Gfx.Colors.black);
-    gfx.setTextColorBg(Gfx.Colors.cyan, Gfx.Colors.black);
-    gfx.setTextSize(1);
-    gfx.setCursor(10, 250);
-    try gfx.print("PRESSED:");
-
-    if (keypad_mod.firstPressed(pressed)) |n| {
-        const row = (n - 1) / keypad_mod.COLS;
-        const col = keypad_mod.COLS - 1 - ((n - 1) % keypad_mod.COLS);
-
-        gfx.setTextColorBg(Gfx.Colors.green, Gfx.Colors.black);
-        gfx.setTextSize(3);
-        var buf: [3]u8 = undefined;
-        const s = fmtNum(n, &buf);
-        gfx.setCursor(10, 262);
-        try gfx.print(s);
-
-        gfx.setTextColorBg(Gfx.Colors.white, Gfx.Colors.black);
-        gfx.setTextSize(1);
-        var line: [12]u8 = undefined;
-        line[0] = 'r';
-        line[1] = 'o';
-        line[2] = 'w';
-        line[3] = '=';
-        line[4] = '0' + row;
-        line[5] = ' ';
-        line[6] = 'c';
-        line[7] = 'o';
-        line[8] = 'l';
-        line[9] = '=';
-        line[10] = '0' + col;
-        gfx.setCursor(10, 300);
-        try gfx.print(line[0..11]);
-    } else {
-        gfx.setTextColorBg(Gfx.Colors.darkgrey, Gfx.Colors.black);
-        gfx.setTextSize(2);
-        gfx.setCursor(10, 272);
-        try gfx.print("NONE");
-    }
+fn redrawPrompt(gfx: *Gfx, repl: *const Repl) !void {
+    var s: [input_cap + 2]u8 = undefined;
+    s[0] = '>';
+    s[1] = ' ';
+    for (repl.input[0..repl.input_len], 0..) |c, i| s[2 + i] = c;
+    try gfx.drawTextLine(312, s[0 .. repl.input_len + 2], Gfx.Colors.white, Gfx.Colors.black);
+    const cx: u16 = @intCast(12 + repl.cursor * 6);
+    try gfx.fillRect(cx, 314, 2, 5, Gfx.Colors.green);
 }
 
 pub fn main() !void {
@@ -182,15 +274,14 @@ pub fn main() !void {
     const col_pins = [_]rp2xxx.gpio.Pin{ pins.col0, pins.col1, pins.col2, pins.col3, pins.col4, pins.col5 };
     var keypad = keypad_mod.Keypad.init(row_pins, col_pins);
 
-    gfx.setTextColorBg(Gfx.Colors.cyan, Gfx.Colors.black);
-    gfx.setTextSize(1);
-    gfx.setCursor(8, 6);
-    try gfx.print("KEYPAD DEBUG");
-    try drawGrid(&gfx);
+    const layout = layout_mod.KEY_LAYOUT;
+    var repl = Repl.init();
+
+    try redrawBar(&gfx, &repl);
+    try redrawOutput(&gfx, &repl);
+    try redrawPrompt(&gfx, &repl);
 
     var last_pressed = std.mem.zeroes(keypad_mod.PressedState);
-    try drawCells(&gfx, last_pressed);
-    try drawReadout(&gfx, last_pressed);
 
     while (true) {
         var pressed = keypad.scan();
@@ -199,11 +290,77 @@ pub fn main() !void {
         if (!std.mem.eql(u6, &pressed, &pressed2))
             continue;
 
-        if (!std.mem.eql(u6, &pressed, &last_pressed)) {
-            last_pressed = pressed;
-            pins.led.put(if (keypad_mod.firstPressed(pressed) != null) 1 else 0);
-            try drawCells(&gfx, pressed);
-            try drawReadout(&gfx, pressed);
+        if (std.mem.eql(u6, &pressed, &last_pressed))
+            continue;
+        last_pressed = pressed;
+
+        const btn = keypad_mod.firstPressed(pressed) orelse {
+            pins.led.put(0);
+            continue;
+        };
+        pins.led.put(1);
+
+        const row = (btn - 1) / layout_mod.COLS;
+        const col = layout_mod.COLS - 1 - ((btn - 1) % layout_mod.COLS);
+        const key = layout[row][col];
+        const kind = if (repl.shift_on)
+            choose(key.shift, key.orig)
+        else if (repl.alpha_on)
+            choose(key.alpha, key.orig)
+        else
+            key.orig;
+
+        var redraw_all = false;
+        var bar_changed = false;
+
+        switch (kind) {
+            .unicode => |s| repl.insert(s),
+            .alpha => {
+                repl.alpha_on = !repl.alpha_on;
+                if (repl.alpha_on) repl.shift_on = false;
+                bar_changed = true;
+            },
+            .shift => {
+                repl.shift_on = !repl.shift_on;
+                if (repl.shift_on) repl.alpha_on = false;
+                bar_changed = true;
+            },
+            .arrow => |d| switch (d) {
+                .left => {
+                    if (repl.cursor > 0) repl.cursor -= 1;
+                },
+                .right => {
+                    if (repl.cursor < repl.input_len) repl.cursor += 1;
+                },
+                .up => {
+                    repl.moveHighlight(true);
+                    redraw_all = true;
+                },
+                .down => {
+                    repl.moveHighlight(false);
+                    redraw_all = true;
+                },
+            },
+            .enter => {
+                if (repl.hl_k > 0) {
+                    repl.paste();
+                    redraw_all = true;
+                } else {
+                    repl.eval();
+                    redraw_all = true;
+                }
+            },
+            .backspace => repl.backspace(),
+            .clear => {
+                repl.clearInput();
+                repl.hl_k = 0;
+                redraw_all = true;
+            },
+            else => {},
         }
+
+        if (redraw_all) try redrawOutput(&gfx, &repl);
+        if (bar_changed) try redrawBar(&gfx, &repl);
+        try redrawPrompt(&gfx, &repl);
     }
 }

@@ -24,7 +24,7 @@ pub fn ColorTable(comptime C: type) type {
     };
 }
 
-pub const font5x7 = [96][5]u8{
+pub const font5x7 = [97][5]u8{
     .{ 0x00, 0x00, 0x00, 0x00, 0x00 }, // 0x20 space
     .{ 0x00, 0x00, 0x5F, 0x00, 0x00 }, // !
     .{ 0x00, 0x07, 0x00, 0x07, 0x00 }, // "
@@ -121,6 +121,7 @@ pub const font5x7 = [96][5]u8{
     .{ 0x00, 0x41, 0x36, 0x08, 0x00 }, // }
     .{ 0x08, 0x08, 0x2A, 0x1C, 0x08 }, // ~
     .{ 0x08, 0x1C, 0x2A, 0x08, 0x08 }, // del
+    .{ 0x0C, 0x16, 0x05, 0x0E, 0x14 }, // 0xEE script e (Euler)
 };
 
 pub fn DisplayGFX(comptime Display: type) type {
@@ -481,6 +482,39 @@ pub fn DisplayGFX(comptime Display: type) type {
 
         pub fn print(gfx: *Self, s: []const u8) !void {
             for (s) |c| try gfx.write(c);
+        }
+
+        /// Draw a full-width row of text (8px tall band starting at y) in one
+        /// batched transfer. 0xEE renders the script-e (Euler) glyph.
+        /// The whole band is cleared to bg first.
+        pub fn drawTextLine(gfx: *Self, y: u16, s: []const u8, fg: C, bg: C) !void {
+            const w = 240;
+            var buf: [w * 8]C = undefined;
+            @memset(&buf, bg);
+            var px: usize = 0;
+            for (s) |ch| {
+                if (px + 6 > w) break;
+                const gi: usize = if (ch == 0xEE)
+                    96
+                else if (ch >= 0x20 and ch <= 0x7E)
+                    ch - 0x20
+                else
+                    continue;
+                const glyph = font5x7[gi];
+                for (0..5) |col| {
+                    var line = glyph[col];
+                    for (0..7) |row| {
+                        if (line & 1 != 0) buf[row * w + px + col] = fg;
+                        line >>= 1;
+                    }
+                }
+                px += 6;
+            }
+            try gfx.display.set_address_window(0, y, w, 8);
+            for (0..8) |row| {
+                const base = row * w;
+                try gfx.display.push_colors(buf[base .. base + w]);
+            }
         }
     };
 }
