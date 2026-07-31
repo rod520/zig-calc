@@ -96,14 +96,18 @@ const Repl = struct {
         self.input_len += 1;
     }
 
-    /// Insert a unicode string. The UTF-8 script-e (Euler) is stored as the
-    /// single sentinel byte 0xEE so it renders as its own glyph.
+    /// Insert a unicode string. The UTF-8 script-e (Euler) and pi are stored
+    /// as single sentinel bytes (0xEE / 0xEF) so they render as their own
+    /// glyphs.
     fn insert(self: *Repl, s: []const u8) void {
         var i: usize = 0;
         while (i < s.len and self.input_len < input_cap) {
             if (s[i] == 0xE2 and i + 2 < s.len and s[i + 1] == 0x84 and s[i + 2] == 0xAF) {
                 self.insertByte(0xEE);
                 i += 3;
+            } else if (s[i] == 0xCF and i + 1 < s.len and s[i + 1] == 0x80) {
+                self.insertByte(0xEF);
+                i += 2;
             } else {
                 self.insertByte(s[i]);
                 i += 1;

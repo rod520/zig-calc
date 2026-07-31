@@ -74,7 +74,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
         .{ .orig = unicode("2"), .alpha = unicode("v") },
         .{ .orig = unicode("1"), .alpha = unicode("u") },
         .{ .orig = unicode(")"), .alpha = unicode("t") },
-        .{ .orig = unicode("pi"), .alpha = unicode("s") },
+        .{ .orig = unicode("π"), .alpha = unicode("s") },
     },
     .{
         .{ .orig = unicode("+") },
