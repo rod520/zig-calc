@@ -1,0 +1,16 @@
+src/ili9341.zig
+  h_7ffaac8f5937a6 3,5,9,14,19,21-24,28,39-40,42,44,46,48,62,64,66,68,71,75,103,110,120,132
+src/layout.zig
+  h_7ffaac8f5937a6 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.19",
+  "base_commit_sha": "dc08c5464b2dfda88d359fc05f3db53d4ecf2395",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
