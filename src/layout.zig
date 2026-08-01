@@ -3,18 +3,23 @@ const std = @import("std");
 pub const ROWS = 6;
 pub const COLS = 6;
 
+/// A menu entry: what the user sees and the value it inserts.
+pub const MenuItem = struct {
+    label: []const u8,
+    value: []const u8,
+};
+
 /// What a key inserts or does when pressed.
 pub const KeyKind = union(enum) {
     unicode: []const u8, // inserts this string
-    alpha,               // toggles alpha mode
-    shift,               // toggles shift mode
-    // soon gonna make menu an array of unicodes, which gets selected over using the display
-    menu: []const u8,    // opens a menu, label = payload ("calc_menu", ...)
-    pos_neg,             // +/- sign toggle
+    alpha, // toggles alpha mode
+    shift, // toggles shift mode
+    menu: []const MenuItem, // opens a menu (label/value pairs, picked on the display)
+    pos_neg, // +/- sign toggle
     arrow: enum { left, down, up, right }, // cursor movement
-    backspace,           // delete the char before the cursor
-    clear,               // clear the current input
-    enter,               // run the current input / paste a highlighted line
+    backspace, // delete the char before the cursor
+    clear, // clear the current input
+    enter, // run the current input / paste a highlighted line
     none, // blank / unused slot
 };
 
@@ -22,7 +27,7 @@ pub fn unicode(s: []const u8) KeyKind {
     return .{ .unicode = s };
 }
 
-pub fn menu(s: []const u8) KeyKind {
+pub fn menu(s: []const MenuItem) KeyKind {
     return .{ .menu = s };
 }
 
@@ -46,11 +51,36 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
     },
     .{
         .{ .orig = .enter, .alpha = unicode("f") },
-        .{ .orig = unicode("sqrt"), .alpha = unicode("e"), .shift = unicode("n_log") },
-        .{ .orig = unicode("ℯ"), .alpha = unicode("d"), .shift = unicode("ln") },
-        .{ .orig = unicode("^"), .alpha = unicode("c"), .shift = unicode("log_b") },
-        .{ .orig = menu("trig_menu"), .alpha = unicode("b") },
-        .{ .orig = menu("calc_menu"), .alpha = unicode("a"), .shift = menu("stats_menu") },
+        .{ .orig = unicode("sqrt"), .alpha = unicode("e"), .shift = unicode("n_log(") },
+        .{ .orig = unicode("ℯ"), .alpha = unicode("d"), .shift = unicode("ln(") },
+        .{ .orig = unicode("^("), .alpha = unicode("c"), .shift = unicode("log_b(") },
+
+        .{
+            .orig = menu(&.{
+                // all trig functions here
+                .{ .label = "sin", .value = "sin(" },
+                .{ .label = "cos", .value = "cos(" },
+                .{ .label = "tan", .value = "tan(" },
+                // arctrig, only one argument
+                .{ .label = "asin", .value = "asin(" },
+                .{ .label = "acos", .value = "acos(" },
+                .{ .label = "atan", .value = "atan(" },
+            }),
+            .alpha = unicode("b"),
+        },
+        .{ // calc menu: solve, diff, int
+            .orig = menu(&.{
+            .{ .label = "solve", .value = "solve(" },
+            .{ .label = "diff", .value = "diff(" },
+            .{ .label = "int", .value = "int(" },
+        }),
+        // stats menu
+         .alpha = unicode("a"), .shift = menu(&.{
+            .{ .label = "normal", .value = "normal(" },
+            .{ .label = "invNormal", .value = "invnorm(" },
+            .{ .label = "nCr", .value = "ncr(" },
+            .{ .label = "nPr", .value = "npr(" },
+         }) },
     },
     .{
         .{ .orig = unicode("/") },
