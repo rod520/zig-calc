@@ -52,7 +52,7 @@ const pin_config = rp2xxx.pins.GlobalConfiguration{
 };
 
 const input_cap = 38;
-const hist_cap = 16;
+const hist_cap = 32;
 const ring_cap = 38; // output rows that fit between y=8 and y=312
 
 const Repl = struct {
@@ -65,20 +65,12 @@ const Repl = struct {
     history: [hist_cap][input_cap]u8 = undefined,
     hist_lens: [hist_cap]usize = undefined,
     hist_count: usize = 0,
-    entry_lines: [hist_cap]usize = undefined,
-
-    screen: [ring_cap][input_cap + 2]u8 = undefined,
-    screen_lens: [ring_cap]usize = undefined,
-    result_flags: [ring_cap]bool = undefined,
-    screen_total: usize = 0,
 
     hl_k: usize = 0, // 1..hist_count = kth newest history line highlighted, 0 = none
 
     fn init() Repl {
         return .{
             .hist_lens = std.mem.zeroes([hist_cap]usize),
-            .screen_lens = std.mem.zeroes([ring_cap]usize),
-            .result_flags = std.mem.zeroes([ring_cap]bool),
         };
     }
 
@@ -155,7 +147,6 @@ const Repl = struct {
             while (i + 1 < hist_cap) : (i += 1) {
                 self.history[i] = self.history[i + 1];
                 self.hist_lens[i] = self.hist_lens[i + 1];
-                self.entry_lines[i] = self.entry_lines[i + 1];
             }
             slot = hist_cap - 1;
         } else {
@@ -163,28 +154,11 @@ const Repl = struct {
         }
         self.hist_lens[slot] = self.input_len;
         copyBytes(self.history[slot][0..self.input_len], self.input[0..self.input_len]);
-        self.entry_lines[slot] = self.screen_total;
-    }
-
-    fn pushLine(self: *Repl, prefix: u8, s: []const u8, is_result: bool) void {
-        const idx = self.screen_total % ring_cap;
-        var n: usize = 0;
-        if (prefix != 0) {
-            self.screen[idx][0] = prefix;
-            self.screen[idx][1] = ' ';
-            n = 2;
-        }
-        copyBytes(self.screen[idx][n .. n + s.len], s);
-        self.screen_lens[idx] = n + s.len;
-        self.result_flags[idx] = is_result;
-        self.screen_total += 1;
     }
 
     fn eval(self: *Repl) void {
         if (self.input_len == 0) return;
         self.addHistory();
-        self.pushLine('>', self.input[0..self.input_len], false);
-        self.pushLine(0, self.input[0..self.input_len], true);
         self.clearInput();
         self.hl_k = 0;
     }
@@ -211,25 +185,31 @@ fn redrawBar(gfx: *Gfx, repl: *const Repl) !void {
 }
 
 fn redrawOutput(gfx: *Gfx, repl: *const Repl) !void {
-    const visible = @min(repl.screen_total, ring_cap);
-    const first = repl.screen_total - visible;
+    const total = repl.hist_count * 2;
+    const visible = @min(total, ring_cap);
+    const first = total - visible;
     var i: usize = 0;
     while (i < visible) : (i += 1) {
         const g = first + i;
-        const idx = g % ring_cap;
-        const s = repl.screen[idx][0..repl.screen_lens[idx]];
-        var hl = false;
-        if (repl.hl_k > 0) {
-            const slot = repl.hist_count - repl.hl_k;
-            if (repl.entry_lines[slot] == g) hl = true;
-        }
+        const e = g / 2;
+        const is_result = (g % 2) == 1;
+        const n = repl.hist_lens[e];
         const y: u16 = @intCast(8 + i * 8);
+        var hl = false;
+        if (repl.hl_k > 0 and !is_result) {
+            const slot = repl.hist_count - repl.hl_k;
+            if (slot == e) hl = true;
+        }
         if (hl) {
-            try gfx.drawTextLine(y, s, Gfx.Colors.black, Gfx.Colors.yellow);
-        } else if (repl.result_flags[idx]) {
-            try gfx.drawTextLine(y, s, Gfx.Colors.darkgrey, Gfx.Colors.black);
+            try gfx.drawTextLine(y, repl.history[e][0..n], Gfx.Colors.black, Gfx.Colors.yellow);
+        } else if (is_result) {
+            try gfx.drawTextLine(y, repl.history[e][0..n], Gfx.Colors.darkgrey, Gfx.Colors.black);
         } else {
-            try gfx.drawTextLine(y, s, Gfx.Colors.white, Gfx.Colors.black);
+            var buf: [input_cap + 2]u8 = undefined;
+            buf[0] = '>';
+            buf[1] = ' ';
+            for (repl.history[e][0..n], 0..) |c, j| buf[2 + j] = c;
+            try gfx.drawTextLine(y, buf[0 .. n + 2], Gfx.Colors.white, Gfx.Colors.black);
         }
     }
 }
@@ -242,6 +222,14 @@ fn redrawPrompt(gfx: *Gfx, repl: *const Repl) !void {
     try gfx.drawTextLine(312, s[0 .. repl.input_len + 2], Gfx.Colors.white, Gfx.Colors.black);
     const cx: u16 = @intCast(12 + repl.cursor * 6);
     try gfx.fillRect(cx, 314, 2, 5, Gfx.Colors.green);
+}
+
+/// Redraw the full REPL (bar + output + prompt). Call this after anything
+/// fills the screen (e.g. a menu) so the whole transcript comes back.
+fn render(gfx: *Gfx, repl: *const Repl) !void {
+    try redrawBar(gfx, repl);
+    try redrawOutput(gfx, repl);
+    try redrawPrompt(gfx, repl);
 }
 
 pub fn main() !void {
@@ -281,9 +269,7 @@ pub fn main() !void {
     const layout = layout_mod.KEY_LAYOUT;
     var repl = Repl.init();
 
-    try redrawBar(&gfx, &repl);
-    try redrawOutput(&gfx, &repl);
-    try redrawPrompt(&gfx, &repl);
+    try render(&gfx, &repl);
 
     var last_pressed = std.mem.zeroes(keypad_mod.PressedState);
 
