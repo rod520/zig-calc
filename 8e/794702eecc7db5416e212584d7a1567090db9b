@@ -1,0 +1,36 @@
+"code function docs.md"
+  s_df571c37d198be::t_c921502e252c31 6-8
+  s_df571c37d198be::t_b02fee8c4e96c9 3-5
+  s_df571c37d198be::t_bbd56b02ec94e8 9-11
+  h_7ffaac8f5937a6 1-2,12-148
+key-layout.md
+  h_7ffaac8f5937a6 4
+src/layout.zig
+  h_7ffaac8f5937a6 54,83
+AGENTS.md
+  s_df571c37d198be::t_e11171cdff6863 1-40
+CALCULATOR-FUNCTIONS.md
+  h_7ffaac8f5937a6 17,28-31,36,39-41,48-56,61
+  s_df571c37d198be::t_c164470ae0e67d 1-16,18-27,32-35,37-38,42-47,57-60,62-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "8e794702eecc7db5416e212584d7a1567090db9b",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_df571c37d198be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_047234619ffeW61QvbSXjpeMSP",
+        "model": "unknown"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
