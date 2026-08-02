@@ -50,10 +50,10 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
         .{ .orig = .alpha },
     },
     .{
-        .{ .orig = .enter, .alpha = unicode("f") },
-        .{ .orig = unicode("sqrt"), .alpha = unicode("e"), .shift = unicode("log(") },
-        .{ .orig = unicode("ℯ"), .alpha = unicode("d"), .shift = unicode("ln(") },
-        .{ .orig = unicode("^("), .alpha = unicode("c"), .shift = unicode("log_b(") },
+        .{ .orig = .enter, .alpha = unicode("F") },
+        .{ .orig = unicode("sqrt"), .alpha = unicode("E"), .shift = unicode("log(") },
+        .{ .orig = unicode("ℯ"), .alpha = unicode("D"), .shift = unicode("ln(") },
+        .{ .orig = unicode("^("), .alpha = unicode("C"), .shift = unicode("log_b(") },
 
         .{
             .orig = menu(&.{
@@ -66,7 +66,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
                 .{ .label = "acos", .value = "acos(" },
                 .{ .label = "atan", .value = "atan(" },
             }),
-            .alpha = unicode("b"),
+            .alpha = unicode("B"),
         },
         .{ // calc menu: solve, diff, int
             .orig = menu(&.{
@@ -75,7 +75,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
             .{ .label = "int", .value = "int(" },
         }),
         // stats menu
-         .alpha = unicode("a"), .shift = menu(&.{
+         .alpha = unicode("A"), .shift = menu(&.{
             .{ .label = "normal", .value = "normal(" },
             .{ .label = "invNormal", .value = "invnorm(" },
             .{ .label = "nCr", .value = "ncr(" },
@@ -84,35 +84,35 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
          }) },
     },
     .{
-        .{ .orig = unicode("/") },
-        .{ .orig = unicode("9"), .alpha = unicode("k") },
-        .{ .orig = unicode("8"), .alpha = unicode("j") },
-        .{ .orig = unicode("7"), .alpha = unicode("i") },
-        .{ .orig = unicode("y"), .alpha = unicode("h") },
-        .{ .orig = unicode("x"), .alpha = unicode("g") },
+        .{ .orig = unicode("/"), .alpha = unicode("L") },
+        .{ .orig = unicode("9"), .alpha = unicode("K") },
+        .{ .orig = unicode("8"), .alpha = unicode("J") },
+        .{ .orig = unicode("7"), .alpha = unicode("I") },
+        .{ .orig = unicode("^(2)"), .alpha = unicode("H") },
+        .{ .orig = unicode("x"), .alpha = unicode("G") },
     },
     .{
-        .{ .orig = unicode("*"), .shift = unicode("r") },
-        .{ .orig = unicode("6"), .alpha = unicode("q") },
-        .{ .orig = unicode("5"), .alpha = unicode("p") },
-        .{ .orig = unicode("4"), .alpha = unicode("o") },
-        .{ .orig = unicode("("), .alpha = unicode("n") },
-        .{ .orig = unicode(":="), .alpha = unicode("m") },
+        .{ .orig = unicode("*"), .shift = unicode("R") },
+        .{ .orig = unicode("6"), .alpha = unicode("Q") },
+        .{ .orig = unicode("5"), .alpha = unicode("P") },
+        .{ .orig = unicode("4"), .alpha = unicode("O") },
+        .{ .orig = unicode("("), .alpha = unicode("N") },
+        .{ .orig = unicode(":="), .alpha = unicode("M") },
     },
     .{
-        .{ .orig = unicode("-"), .shift = unicode("x") },
-        .{ .orig = unicode("3"), .alpha = unicode("w") },
-        .{ .orig = unicode("2"), .alpha = unicode("v") },
-        .{ .orig = unicode("1"), .alpha = unicode("u") },
-        .{ .orig = unicode(")"), .alpha = unicode("t") },
-        .{ .orig = unicode("π"), .alpha = unicode("s") },
+        .{ .orig = unicode("-"), .shift = unicode("X") },
+        .{ .orig = unicode("3"), .alpha = unicode("W") },
+        .{ .orig = unicode("2"), .alpha = unicode("V") },
+        .{ .orig = unicode("1"), .alpha = unicode("U") },
+        .{ .orig = unicode(")"), .alpha = unicode("T") },
+        .{ .orig = unicode("π"), .alpha = unicode("S") },
     },
     .{
         .{ .orig = unicode("+") },
         .{ .orig = .pos_neg },
         .{ .orig = unicode(".") },
         .{ .orig = unicode("0") },
-        .{ .orig = .backspace, .alpha = unicode("z") },
-        .{ .orig = .clear, .alpha = unicode("y") },
+        .{ .orig = .backspace, .alpha = unicode("Z") },
+        .{ .orig = .clear, .alpha = unicode("Y") },
     },
 };

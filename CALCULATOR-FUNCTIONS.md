@@ -26,9 +26,9 @@ the string inserted into the input, its signature, and intended semantics.
 
 | Label | Inserts  | Signature                | Meaning                                                                                      |
 | ----- | -------- | ------------------------ | -------------------------------------------------------------------------------------------- |
-| solve | `solve(` | `solve(eq, var, guess)`  | Find a solution (zero) of an expression `eq` for `var`, e.g. `solve(x^2-4, x, 1)` → `x = 2`. |
-| diff  | `diff(`  | `diff(expr, var, value)` | Derivative of `expr` w.r.t. `var`, e.g. `diff(x^2, x, 1)` → `2`.                             |
-| int   | `int(`   | `int(expr, var, a, b)`   | Definite integral over `[a, b]`.                                                             |
+| solve | `solve(` | `solve(eq, guess)`  | Find a solution (zero) of an expression `eq` for `var`, e.g. `solve(x^2-4, 1)` → `2`. |
+| diff  | `diff(`  | `diff(expr, value)` | Derivative of `expr` w.r.t. `var`, e.g. `diff(x^2, 1)` → `2`.                             |
+| int   | `int(`   | `int(expr, a, b)`   | Definite integral over `[a, b]`.                                                             |
 
 ### Stats menu (`stats_menu`, shift of the `a` key)
 
@@ -50,6 +50,7 @@ the string inserted into the input, its signature, and intended semantics.
 | ℯ     | orig          | `ℯ`      | constant       | Euler's number, ≈ 2.71828. Rendered as the script-e glyph (sentinel `0xEE`). |
 | π     | orig          | `π`      | constant       | Pi, ≈ 3.14159. Rendered as the pi glyph (sentinel `0xEF`).                   |
 | ^(    | orig          | `^(`     | `x^(y)`        | Power; opens a paren so the exponent is explicit, e.g. `2^(3)`.              |
+| ^(2)  | orig          | `^(2)`   | `x^(2)`        | Square shortcut; inserts the `(2)` for you, e.g. `5^(2)`.                    |
 | ln    | shift of ℯ    | `ln(`    | `ln(x)`        | Natural log (base `ℯ`).                                                      |
 | log_b | shift of ^    | `log_b(` | `log_b(b, x)`  | Logarithm of `x` in base `b`. (user-chosen base), e.g. `log_b(2, 8)` → `3`.  |
 | log   | shift of sqrt | `log(`   | `log(x)`       | Logarithm of `x` in base 10                                                  |
