@@ -164,6 +164,12 @@ const Repl = struct {
     }
 };
 
+const MenuState = struct {
+    open: bool = false,
+    items: []const layout_mod.MenuItem = &.{},
+    sel: usize = 0,
+};
+
 fn choose(alt: layout_mod.KeyKind, orig: layout_mod.KeyKind) layout_mod.KeyKind {
     return switch (alt) {
         .none => orig,
@@ -227,9 +233,75 @@ fn redrawPrompt(gfx: *Gfx, repl: *const Repl) !void {
 /// Redraw the full REPL (bar + output + prompt). Call this after anything
 /// fills the screen (e.g. a menu) so the whole transcript comes back.
 fn render(gfx: *Gfx, repl: *const Repl) !void {
+    try gfx.fillScreen(Gfx.Colors.black);
     try redrawBar(gfx, repl);
     try redrawOutput(gfx, repl);
     try redrawPrompt(gfx, repl);
+}
+
+/// Draw the menu full-screen: black with a red outline, one row per item
+/// (number + label), selected row inverted yellow.
+fn drawMenu(gfx: *Gfx, menu: *const MenuState) !void {
+    try gfx.fillScreen(Gfx.Colors.black);
+    try gfx.drawRect(2, 2, 236, 316, Gfx.Colors.red);
+    for (menu.items, 0..) |item, i| {
+        var buf: [input_cap + 2]u8 = undefined;
+        @memset(buf[0..], ' ');
+        buf[0] = '1' + @as(u8, @intCast(i));
+        buf[1] = ' ';
+        var n: usize = 2;
+        for (item.label) |c| {
+            buf[n] = c;
+            n += 1;
+        }
+        const y: u16 = @intCast(16 + i * 16);
+        if (i == menu.sel) {
+            try gfx.drawTextLine(y, buf[0..n], Gfx.Colors.black, Gfx.Colors.yellow);
+        } else {
+            try gfx.drawTextLine(y, buf[0..n], Gfx.Colors.white, Gfx.Colors.black);
+        }
+    }
+}
+
+/// Handle a key while a menu is open. Returns true if the screen needs a
+/// redraw. Enter / number keys paste the selected value into the input and
+/// close the menu; backspace / clear close without pasting.
+fn handleMenuKey(menu: *MenuState, repl: *Repl, kind: layout_mod.KeyKind) bool {
+    return switch (kind) {
+        .arrow => |d| switch (d) {
+            .up => blk: {
+                if (menu.items.len > 0) menu.sel = (menu.sel + menu.items.len - 1) % menu.items.len;
+                break :blk true;
+            },
+            .down => blk: {
+                if (menu.items.len > 0) menu.sel = (menu.sel + 1) % menu.items.len;
+                break :blk true;
+            },
+            else => false,
+        },
+        .enter => blk: {
+            if (menu.items.len > 0 and menu.sel < menu.items.len) {
+                repl.insert(menu.items[menu.sel].value);
+                menu.open = false;
+            }
+            break :blk true;
+        },
+        .unicode => |s| blk: {
+            if (s.len == 1 and s[0] >= '1' and s[0] <= '6') {
+                const idx = s[0] - '1';
+                if (idx < menu.items.len) {
+                    repl.insert(menu.items[idx].value);
+                    menu.open = false;
+                }
+            }
+            break :blk true;
+        },
+        .backspace, .clear => blk: {
+            menu.open = false;
+            break :blk true;
+        },
+        else => false,
+    };
 }
 
 pub fn main() !void {
@@ -268,6 +340,7 @@ pub fn main() !void {
 
     const layout = layout_mod.KEY_LAYOUT;
     var repl = Repl.init();
+    var menu = MenuState{};
 
     try render(&gfx, &repl);
 
@@ -293,6 +366,18 @@ pub fn main() !void {
         const row = (btn - 1) / layout_mod.COLS;
         const col = layout_mod.COLS - 1 - ((btn - 1) % layout_mod.COLS);
         const key = layout[row][col];
+
+        if (menu.open) {
+            if (handleMenuKey(&menu, &repl, key.orig)) {
+                if (menu.open) {
+                    try drawMenu(&gfx, &menu);
+                } else {
+                    try render(&gfx, &repl);
+                }
+            }
+            continue;
+        }
+
         const kind = if (repl.shift_on)
             choose(key.shift, key.orig)
         else if (repl.alpha_on)
@@ -346,11 +431,19 @@ pub fn main() !void {
                 repl.hl_k = 0;
                 redraw_all = true;
             },
+            .menu => |items| {
+                menu.open = true;
+                menu.items = items;
+                menu.sel = 0;
+                try drawMenu(&gfx, &menu);
+            },
             else => {},
         }
 
-        if (redraw_all) try redrawOutput(&gfx, &repl);
-        if (bar_changed) try redrawBar(&gfx, &repl);
-        try redrawPrompt(&gfx, &repl);
+        if (!menu.open) {
+            if (redraw_all) try redrawOutput(&gfx, &repl);
+            if (bar_changed) try redrawBar(&gfx, &repl);
+            try redrawPrompt(&gfx, &repl);
+        }
     }
 }
