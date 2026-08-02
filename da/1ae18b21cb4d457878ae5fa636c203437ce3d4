@@ -1,0 +1,34 @@
+key-layout.md
+  h_7ffaac8f5937a6 5
+  s_df571c37d198be::t_4941b44f25614b 4,6-8
+CALCULATOR-FUNCTIONS.md
+  s_df571c37d198be::t_f321992c01fcd1 53
+  h_7ffaac8f5937a6 29-31
+src/layout.zig
+  s_df571c37d198be::t_7ee29186fcb9a1 53-56
+  s_df571c37d198be::t_73d5846f860c4e 69
+  s_df571c37d198be::t_ed5ba162a0e27f 78
+  h_7ffaac8f5937a6 87-90,92,95-100,103-108,115-116
+  s_df571c37d198be::t_9716cd78410013 91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "da1ae18b21cb4d457878ae5fa636c203437ce3d4",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_df571c37d198be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_047234619ffeW61QvbSXjpeMSP",
+        "model": "unknown"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
