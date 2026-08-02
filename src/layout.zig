@@ -51,7 +51,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
     },
     .{
         .{ .orig = .enter, .alpha = unicode("f") },
-        .{ .orig = unicode("sqrt"), .alpha = unicode("e"), .shift = unicode("n_log(") },
+        .{ .orig = unicode("sqrt"), .alpha = unicode("e"), .shift = unicode("log(") },
         .{ .orig = unicode("ℯ"), .alpha = unicode("d"), .shift = unicode("ln(") },
         .{ .orig = unicode("^("), .alpha = unicode("c"), .shift = unicode("log_b(") },
 
@@ -80,6 +80,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
             .{ .label = "invNormal", .value = "invnorm(" },
             .{ .label = "nCr", .value = "ncr(" },
             .{ .label = "nPr", .value = "npr(" },
+            .{ .label = "factorial", .value = "fact(" },
          }) },
     },
     .{
