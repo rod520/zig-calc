@@ -13,3 +13,4 @@ since I'm on a rpi pico, no battery logic was added
 ### keys:
 print out layout2.pdf, alternatively edit drawing.svg for a printable key layout for your pico calc.
 
+<img width="1498" height="1996" alt="image" src="https://github.com/user-attachments/assets/758f25e6-6cb1-4943-ae71-283af5d8e219" />
