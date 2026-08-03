@@ -1,0 +1,14 @@
+drawing.svg
+  h_7ffaac8f5937a6 26-28,196
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "11d91acf2e4e98225d300dce6c0e2a2fb8b61912",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
