@@ -1,0 +1,27 @@
+build.zig
+  h_7ffaac8f5937a6 14,16
+  s_92699ce64fba4d::t_c35953922c7fb3 15
+README.md
+  h_7ffaac8f5937a6 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "af814e4163dc2a1137352b5bd9522f60f9890317",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_92699ce64fba4d": {
+      "agent_id": {
+        "tool": "github-copilot-tab",
+        "id": "ai_tab-1785789450787",
+        "model": "default"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
