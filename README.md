@@ -1,5 +1,5 @@
 # zig calc
-This is the repo for software for the pico calc. 
+This is the repo for software for the [pico calc](https://github.com/rod520/calc-project/). 
 ### requirements:
 - zig 0.17.0-dev.1158+1d1193aa7
     - i tried .16 as well as the nightly, only this version, obtained from micro-zig seemed to work
