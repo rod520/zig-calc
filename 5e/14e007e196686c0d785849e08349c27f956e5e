@@ -1,0 +1,16 @@
+README.md
+  h_7ffaac8f5937a6 1-15
+mise.toml
+  h_7ffaac8f5937a6 3-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "5e14e007e196686c0d785849e08349c27f956e5e",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
