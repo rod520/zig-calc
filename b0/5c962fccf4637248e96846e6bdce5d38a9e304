@@ -1,0 +1,25 @@
+src/gfx.zig
+  s_df571c37d198be::t_40ff79e0f4f2bf 126
+  h_7ffaac8f5937a6 27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.20",
+  "base_commit_sha": "b05c962fccf4637248e96846e6bdce5d38a9e304",
+  "prompts": {},
+  "humans": {
+    "h_7ffaac8f5937a6": {
+      "author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_df571c37d198be": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_047234619ffeW61QvbSXjpeMSP",
+        "model": "unknown"
+      },
+      "human_author": "rod520 <rodriguesorlen@gmail.com>"
+    }
+  }
+}
