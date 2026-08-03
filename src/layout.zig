@@ -88,7 +88,7 @@ pub const KEY_LAYOUT = [ROWS][COLS]Key{
         .{ .orig = unicode("9"), .alpha = unicode("K") },
         .{ .orig = unicode("8"), .alpha = unicode("J") },
         .{ .orig = unicode("7"), .alpha = unicode("I") },
-        .{ .orig = unicode("^(2)"), .alpha = unicode("H") },
+        .{ .orig = unicode(","), .alpha = unicode("H") },
         .{ .orig = unicode("x"), .alpha = unicode("G") },
     },
     .{

@@ -24,7 +24,7 @@ pub fn ColorTable(comptime C: type) type {
     };
 }
 
-pub const font5x7 = [98][5]u8{
+pub const font5x7 = [99][5]u8{
     .{ 0x00, 0x00, 0x00, 0x00, 0x00 }, // 0x20 space
     .{ 0x00, 0x00, 0x5F, 0x00, 0x00 }, // !
     .{ 0x00, 0x07, 0x00, 0x07, 0x00 }, // "
@@ -123,6 +123,7 @@ pub const font5x7 = [98][5]u8{
     .{ 0x08, 0x1C, 0x2A, 0x08, 0x08 }, // del
     .{ 0x38, 0x54, 0x52, 0x4A, 0x44 }, // 0xEE script e (Euler)
     .{ 0x1F, 0x01, 0x05, 0x01, 0x0F }, // 0xEF pi
+    .{ 0x08, 0x08, 0x08, 0x08, 0x08 }, // 0xAF raised minus
 };
 
 pub fn DisplayGFX(comptime Display: type) type {
@@ -499,6 +500,8 @@ pub fn DisplayGFX(comptime Display: type) type {
                     96
                 else if (ch == 0xEF)
                     97
+                else if (ch == 0xAF)
+                    98
                 else if (ch >= 0x20 and ch <= 0x7E)
                     ch - 0x20
                 else
