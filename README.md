@@ -7,6 +7,7 @@ This is the repo for software for the [pico calc](https://github.com/rod520/calc
     - zig will automatically download all other dependencies for you. no cmake needed. 
 - usb cable
 - pico calc
+    - if you're using a pico, make sure to edit build.zig at .target
 
 since I'm on a rpi pico, no battery logic was added
 

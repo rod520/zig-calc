@@ -11,6 +11,9 @@ pub fn build(b: *std.Build) void {
 
     const firmware = mb.add_firmware(.{
         .name = "zig-calc",
+
+        // if you have a pico and not pico2, uncomment the line below and comment out the pico2 line
+        // .target = mb.ports.rp2xxx.boards.raspberrypi.pico,
         .target = mb.ports.rp2xxx.boards.raspberrypi.pico2_arm,
         .optimize = .ReleaseSmall,
         .root_source_file = b.path("src/main.zig"),
